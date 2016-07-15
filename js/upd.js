@@ -22,11 +22,24 @@ var Convert = require('./js/node_modules/ansi-to-html');
 var convert = new Convert();
 
 
-var file = fs.readFileSync(firmware);
-//var file2 = fs.readFileSync(firmware_old);
+
+var file2 = fs.readFileSync(firmware);
 var port = new sp.SerialPort(tty_port, {baudrate: tty_baud}, false);
 var powerSerial = new sp.SerialPort(power_tty, {baudrate: power_baud, dtr: true}, false);
 var sendData = false;
+var updater = {
+	pathfile : null,
+	file: null,
+	setPath: function(val) {
+		this.pathfile = val;
+		this.file = fs.readFileSync(firmware);
+	},
+	getPath: function(val) {
+		console.log(this.pathfile);
+	}
+}
+
+
 
 port.on('error', function(msg){
 	console.error('Error', msg);
@@ -35,12 +48,15 @@ port.on('error', function(msg){
 
 port.on('data', function (data) {
 	
-	if (data == "C") {
+	if (data.toString() == "C") {
 		sendData = true;
+		switchUpdate(false)
 	} else {
 		sendData = false;
-		document.write(convert.toHtml(cleanStr(data.toString())));
+		switchUpdate(true)
+		//document.write(convert.toHtml(cleanStr(data.toString())));
 	}
+	console.log(data.toString())
 	sysinfo.token.write(data);
 });
 
@@ -55,9 +71,12 @@ port.on('open', function (data) {
 	console.log('port is opened')
 });
 port.open()
+
 sysinfo.callback = function() {
 	msg.info("Firmware version:");
 	msg.pass(sysinfo.stats.version);
+	console.log(sysinfo.stats.version);
+	appendFirmware(sysinfo.stats.version);
 }
 
 var hell = function(){
@@ -72,14 +91,16 @@ var update = function(firmware, port) {
 		port.removeAllListeners('close');
 		port.close(function(){
 			var progressCallback = function(val){ 
-				msg.debug( Math.round(val.current*100/val.total) + '%' + '   '+ val.current);
-				//console.trace(val.current);
+				console.log( Math.round(val.current*100/val.total) + '%' + '   '+ val.current);
+				console.trace(val.current);
 				}
 			var logBack = msg.debug;
 			modem.transfer(firmware, port, progressCallback, console.log);
 			});
 	}
 } 
+
+
 
 /*
 process.stdin.on('data', function (text) {
