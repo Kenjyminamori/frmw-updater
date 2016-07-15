@@ -26,3 +26,7 @@ function appendFirmware(ver) {
 function switchUpdate(val){
 	$( "#update" ).prop( "disabled", val );
 }
+
+function consoleOutput(val) {
+	$("#console").append(convert.toHtml(cleanStr(val)))
+}

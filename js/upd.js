@@ -47,13 +47,14 @@ port.on('error', function(msg){
 
 
 port.on('data', function (data) {
-	
+	consoleOutput(data.toString())
 	if (data.toString() == "C") {
 		sendData = true;
 		switchUpdate(false)
 	} else {
 		sendData = false;
 		switchUpdate(true)
+		
 		//document.write(convert.toHtml(cleanStr(data.toString())));
 	}
 	console.log(data.toString())
